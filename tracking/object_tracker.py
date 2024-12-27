@@ -73,6 +73,11 @@ class ObjectTracker(AbstractTracker):
         # Return only the last frame's data
         return self.current_frame_tracks
     
+    def reset_tracker(self):
+        self.tracker.reset()
+        self.all_tracks = {class_name: {} for class_name in self.classes}  # Initialize tracks
+        self.cur_frame = 0  # Frame counter initialization
+    
     def _preprocess_frame(self, frame: np.ndarray) -> np.ndarray:
         """
         Preprocess the frame by resizing it to 1280x1280.

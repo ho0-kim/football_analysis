@@ -3,10 +3,11 @@ from tracking import ObjectTracker, KeypointsTracker
 from club_assignment import ClubAssigner, Club
 from ball_to_player_assignment import BallToPlayerAssigner
 from annotation import FootballVideoProcessor
+import argparse
 
 import numpy as np
 
-def main():
+def main(args):
     """
     Main function to demonstrate how to use the football analysis project.
     This script will walk you through loading models, assigning clubs, tracking objects and players, and processing the video.
@@ -25,24 +26,14 @@ def main():
     kp_tracker = KeypointsTracker(
         model_path='models/weights/keypoints-detection.pt', # Keypoints Model Weights Path
         conf=.3,                                            # Field Detection confidence threshold
-        kp_conf=.7,                                         # Keypoint confidence threshold
+        kp_conf=.5,                                         # Keypoint confidence threshold
     )
-    
-    # 3. Assign clubs to players based on their uniforms' colors
-    # Create 'Club' objects - Needed for Player Club Assignment
-    # Replace the RGB values with the actual colors of the clubs.
-    club1 = Club('Club1',         # club name 
-                 (232, 247, 248), # player jersey color
-                 (6, 25, 21)      # goalkeeper jersey color
-                 )
-    club2 = Club('Club2',         # club name 
-                 (172, 251, 145), # player jersey color
-                 (239, 156, 132)  # goalkeeper jersey color
-                 )   
 
     # Create a ClubAssigner Object to automatically assign players and goalkeepers 
-    # to their respective clubs based on jersey colors.
-    club_assigner = ClubAssigner(club1, club2)
+    # to their respective clubs based on jersey colors (player) and positions (goalkeeper)
+    club_assigner = ClubAssigner(obj_tracker, video_source=args.input)
+    club1 = club_assigner.club1
+    club2 = club_assigner.club2
 
     # 4. Initialize the BallToPlayerAssigner object
     ball_player_assigner = BallToPlayerAssigner(club1, club2)
@@ -79,11 +70,17 @@ def main():
     # Specify the input video path and the output video path. 
     # The batch_size determines how many frames are processed in one go.
     process_video(processor,                                # Created FootballVideoProcessor object
-                  video_source='input_videos/video2.mp4', # Video source (in this case video file path)
-                  output_video='output_videos/testx.mp4',    # Output video path (Optional)
+                  video_source=args.input, # Video source (in this case video file path)
+                  output_video=args.output,    # Output video path (Optional)
                   batch_size=10                             # Number of frames to process at once
                   )
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Footbal Analysis Tool')
+    parser.add_argument('-i', '--input', type=str, required=True, help='path of football video')
+    parser.add_argument('-o', '--output', type=str, default='result.mp4', help='path of output video')
+    args = parser.parse_args()
+
+
+    main(args)
